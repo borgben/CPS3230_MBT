@@ -1,5 +1,6 @@
 package main;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -24,14 +25,16 @@ import com.google.gson.reflect.TypeToken;
 public class User {
 	public String userId;
 	WebDriver driver;
-	public int noAlerts;
 	public int noDisplayedAlerts;
+	public List<Alert> alerts;
+	
 	
 	public User(String userId)
 	{
 		this.userId = userId;
         this.driver = new ChromeDriver();
         driver.get("https://www.marketalertum.com/");
+        this.alerts = new ArrayList<Alert>();
 	}
 	
 	public void mismatchedAlertSizes() {}
@@ -40,12 +43,13 @@ public class User {
 	{
 		Random rand = new Random();
 		int alertType = rand.nextInt(6)+1;
+		Alert newAlert = new Alert(alertType,"Test","TestDescription","https://olimpusmusic.com/product/adam-audio-t7v/","https://olimpusmusic.com/wp-content/uploads/2022/10/IT12575.jpg",21900, userId);
 		URL url = new URL("https://api.marketalertum.com/Alert");
 		URLConnection con = url.openConnection();
 		HttpURLConnection http = (HttpURLConnection)con;
 		http.setRequestMethod("POST");
 		http.setDoOutput(true);
-		String jsonString = new Gson().toJson(new Alert(alertType,"Test","TestDescription","https://olimpusmusic.com/product/adam-audio-t7v/","https://olimpusmusic.com/wp-content/uploads/2022/10/IT12575.jpg",21900, userId));
+		String jsonString = new Gson().toJson(newAlert);
 		byte[] out = jsonString.getBytes(StandardCharsets.UTF_8);
 		int length = out.length;
 		http.setFixedLengthStreamingMode(length);
@@ -54,6 +58,7 @@ public class User {
 		try(OutputStream os = http.getOutputStream()) {
 		    os.write(out);
 		}
+		this.alerts.add(newAlert);
 	}
 	public void deleteAlerts() throws IOException 
 	{
@@ -66,6 +71,7 @@ public class User {
 			    "Content-Type","application/json; charset=UTF-8" );
 		http.connect();
 		http.getResponseCode();
+		this.alerts = new ArrayList<Alert>();
 	}
 	public void login() 
 	{
@@ -82,6 +88,7 @@ public class User {
 	{
 		driver.findElement(By.xpath("//a[@href='/Alerts/List']")).click();
 	}
+	
 	public void alertsValidated() {}
 	
 //	public void userViewedAlerts(List<WebElement> webScrapeAlerts, List<Alert> alerts) 
