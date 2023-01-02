@@ -3,6 +3,8 @@ package main;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -13,8 +15,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
@@ -28,10 +30,37 @@ public class User {
 	public int noDisplayedAlerts;
 	public List<Alert> alerts;
 	
+	private List<Status> eventsLog() throws IOException
+	{
+		Type listType = new TypeToken<ArrayList<Status>>(){}.getType();
+		String baseUrl= "https://api.marketalertum.com/EventsLog/" + userId;
+		URL url = new URL(baseUrl);
+		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+		connection.setRequestMethod("GET");
+		BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+		StringBuilder stringBuilder = new StringBuilder();
+
+		reader.lines().forEach(a->stringBuilder.append(a));
+		List<Status> events = new Gson().fromJson(stringBuilder.toString(), listType);
+
+		return events;
+	}
 	
 	public User(String userId)
 	{
 		this.userId = userId;
+		try {
+			this.deleteAlerts();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		try {
+			this.eventsLog();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         this.driver = new ChromeDriver();
         driver.get("https://www.marketalertum.com/");
         this.alerts = new ArrayList<Alert>();
@@ -43,7 +72,7 @@ public class User {
 	{
 		Random rand = new Random();
 		int alertType = rand.nextInt(6)+1;
-		Alert newAlert = new Alert(alertType,"Test","TestDescription","https://olimpusmusic.com/product/adam-audio-t7v/","https://olimpusmusic.com/wp-content/uploads/2022/10/IT12575.jpg",21900, userId);
+		PostAlert newAlert = new PostAlert(alertType,"Test","TestDescription","https://olimpusmusic.com/product/adam-audio-t7v/","https://olimpusmusic.com/wp-content/uploads/2022/10/IT12575.jpg",21900, userId);
 		URL url = new URL("https://api.marketalertum.com/Alert");
 		URLConnection con = url.openConnection();
 		HttpURLConnection http = (HttpURLConnection)con;
@@ -58,7 +87,6 @@ public class User {
 		try(OutputStream os = http.getOutputStream()) {
 		    os.write(out);
 		}
-		this.alerts.add(newAlert);
 	}
 	public void deleteAlerts() throws IOException 
 	{
@@ -71,7 +99,6 @@ public class User {
 			    "Content-Type","application/json; charset=UTF-8" );
 		http.connect();
 		http.getResponseCode();
-		this.alerts = new ArrayList<Alert>();
 	}
 	public void login() 
 	{
@@ -83,38 +110,74 @@ public class User {
 	{
 		driver.findElement(By.xpath("//a[@href='/Home/Logout']")).click();
 	}
-	
-	public void viewAlerts()
+	public List<WebElement> viewAlerts() throws InterruptedException
 	{
 		driver.findElement(By.xpath("//a[@href='/Alerts/List']")).click();
+		Thread.sleep(1000);
+		return driver.findElements(By.xpath("//table[@border='1']"));
+	}
+	public void alertsValidated() {}
+
+	public boolean isLoggedIn() throws IOException {
+		List<WebElement> elts = driver.findElements(By.xpath("//a[@href='/Home/Logout']"));
+		if (elts.size()>0)
+		{
+			return true;
+		}else
+		{
+			return false;
+		}
 	}
 	
-	public void alertsValidated() {}
-	
-//	public void userViewedAlerts(List<WebElement> webScrapeAlerts, List<Alert> alerts) 
-//	{	
-//		
-//		if (alerts.size()<=5)
-//		{
-//			for (int i=0; i< alerts.size(); i++)
-//			{
-//				
-//				alerts.get(i).setDisplayAttributes(webScrapeAlerts.get(i));
-//				System.out.println("Alert Displayed Description " + alerts.get(i).displayDescription);
-//				alerts.get(i).viewingAlert();
-//			}
-//		}else{
-//			for (int i=0; i<5; i++)
-//			{
-//				alerts.get(i).setDisplayAttributes(webScrapeAlerts.get(i));
-//				System.out.println("Alert Displayed Description " + alerts.get(i).displayDescription);
-//				alerts.get(i).viewingAlert();
-//			}
-//		}
-//
-//	}
+	public int checkAlerts() throws IOException
+	{
+		List<Status> status = eventsLog();
+		try{
+			Status lastEvent = status.get(status.size()-1);
+			this.alerts = lastEvent.systemState.alerts;
+			return lastEvent.systemState.alerts.size();
+		}catch(Exception e)
+		{
+			return -1;
+		}
+	}
 	
 	
+	
+	
+	
+	public boolean validateAlerts(List<WebElement> displayedAlerts ) 
+	{
+		boolean isValid = true;
+		boolean validNoAlerts = true;
+			if(displayedAlerts.size() > 5)
+			{
+				System.out.println(" ERROR: More than 5 alerts displayed to user.");
+				return false;
+			}
+			
+			if(alerts.size() > 5 && displayedAlerts.size() !=5)
+			{
+				System.out.println(" ERROR: More than 5 alerts exist but less than 5 have been displayed to user.");
+				return false;
+			}
+			
+			if (alerts.size() <=5 && displayedAlerts.size() != alerts.size())
+			{
+				System.out.println(" ERROR: Less than 5 alerts exist but there exists a mismatch between the number of actual alerts and displayed alerts.");
+				return false;
+			}
+			
+			for(int i=0;i<displayedAlerts.size();i++)
+			{
+				ViewAlert displayedAlert = new ViewAlert(displayedAlerts.get(i)) ;
+				isValid = isValid && displayedAlert.isValidAlert(alerts.get(i));
+			}
+			
+			return isValid;
+	}
+	
+
 //	public void matchEventToFn(Status event) throws InterruptedException
 //	{
 //		System.out.println(event.eventLogType);
