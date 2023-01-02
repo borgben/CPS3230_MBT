@@ -27,7 +27,6 @@ public class MarketUMModelTest implements FsmModel{
 	
 	public @Action void logout() throws IOException
 	{
-		System.out.println("Hello from Logout");
 		this.user.loggout();
 		this.userState = UserEnum.LOGGED_OUT;
 		
@@ -40,7 +39,6 @@ public class MarketUMModelTest implements FsmModel{
 	
 	public @Action void login() throws IOException
 	{
-		System.out.println("Hello from Login");
 		this.user.login();
 		this.userState = UserEnum.LOGGED_IN;
 		
@@ -50,7 +48,6 @@ public class MarketUMModelTest implements FsmModel{
 	
 	public @Action void createAlert() throws IOException
 	{
-		System.out.println("Hello from CREATE");
 		this.user.createAlert();
 		this.noAlerts ++;
 		Assert.assertEquals(noAlerts, this.user.checkAlerts());
@@ -58,7 +55,6 @@ public class MarketUMModelTest implements FsmModel{
 	
 	public @Action void deleteAlert() throws IOException
 	{
-		System.out.println("Hello from DELETE");
 		user.deleteAlerts();
 		this.noAlerts = 0;
 		Assert.assertEquals(noAlerts, this.user.checkAlerts());
@@ -70,7 +66,6 @@ public class MarketUMModelTest implements FsmModel{
 	}
 	public @Action void viewAlerts() throws InterruptedException
 	{
-		System.out.println("Hello from View");
 		List<WebElement> displayedAlerts = user.viewAlerts();
 		
 		Assert.assertEquals(user.validateAlerts(displayedAlerts),true);
@@ -88,7 +83,6 @@ public class MarketUMModelTest implements FsmModel{
 	{
 		if(b)
 		{
-			System.out.println("Full Reset");
 			this.user.driver.close();
 			this.user = new User("5b403bf6-4f10-4bb3-ba93-54a4513864e2");
 		}else{
@@ -108,7 +102,7 @@ public class MarketUMModelTest implements FsmModel{
 		tester.addCoverageMetric(new TransitionPairCoverage());
 		tester.addCoverageMetric(new StateCoverage());
 		tester.addCoverageMetric(new ActionCoverage());
-		tester.generate(100);
+		tester.generate(150);
 		tester.printCoverage();
 	}
 

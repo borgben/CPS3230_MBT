@@ -3,8 +3,6 @@ package main;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -45,7 +43,6 @@ public class User {
 
 		return events;
 	}
-	
 	public User(String userId)
 	{
 		this.userId = userId;
@@ -65,7 +62,6 @@ public class User {
         driver.get("https://www.marketalertum.com/");
         this.alerts = new ArrayList<Alert>();
 	}
-	
 	public void mismatchedAlertSizes() {}
 	public void validateAlert() {}
 	public void createAlert() throws IOException 
@@ -117,7 +113,6 @@ public class User {
 		return driver.findElements(By.xpath("//table[@border='1']"));
 	}
 	public void alertsValidated() {}
-
 	public boolean isLoggedIn() throws IOException {
 		List<WebElement> elts = driver.findElements(By.xpath("//a[@href='/Home/Logout']"));
 		if (elts.size()>0)
@@ -128,7 +123,6 @@ public class User {
 			return false;
 		}
 	}
-	
 	public int checkAlerts() throws IOException
 	{
 		List<Status> status = eventsLog();
@@ -141,15 +135,9 @@ public class User {
 			return -1;
 		}
 	}
-	
-	
-	
-	
-	
 	public boolean validateAlerts(List<WebElement> displayedAlerts ) 
 	{
 		boolean isValid = true;
-		boolean validNoAlerts = true;
 			if(displayedAlerts.size() > 5)
 			{
 				System.out.println(" ERROR: More than 5 alerts displayed to user.");
@@ -176,32 +164,5 @@ public class User {
 			
 			return isValid;
 	}
-	
 
-//	public void matchEventToFn(Status event) throws InterruptedException
-//	{
-//		System.out.println(event.eventLogType);
-//		switch (event.eventLogType) {
-//			case 0:
-//				this.noAlerts = event.systemState.alerts.size();
-//				alertCreated();return;
-//			case 1:
-//				this.noAlerts = event.systemState.alerts.size();
-//				alertsDeleted();return;
-//			case 5:
-//				this.userValidLogin();return;
-//			case 6:
-//				userLoggedOut();return;
-//			case 7:
-//				Thread.sleep(2000);
-//				List<WebElement> webScrapeAlerts = driver.findElements(By.xpath("//table[@border='1']"));
-//				System.out.println(webScrapeAlerts.size());
-//				this.noDisplayedAlerts = webScrapeAlerts.size();
-//				this.noAlerts = event.systemState.alerts.size();
-//				userViewedAlerts(webScrapeAlerts, event.systemState.alerts);
-//				return;
-//			default:
-//				return;
-//		}
-//	}
 }
