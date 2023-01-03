@@ -102,7 +102,7 @@ public class MarketUMModelTest implements FsmModel{
 		tester.addCoverageMetric(new TransitionPairCoverage());
 		tester.addCoverageMetric(new StateCoverage());
 		tester.addCoverageMetric(new ActionCoverage());
-		tester.generate(150);
+		tester.generate(200);
 		tester.printCoverage();
 	}
 
